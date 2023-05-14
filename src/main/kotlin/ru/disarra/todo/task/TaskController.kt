@@ -1,14 +1,9 @@
 package ru.disarra.todo.task
 
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
+@CrossOrigin
 @RequestMapping("/task")
 class TaskController(val taskService: TaskService) {
 
@@ -22,7 +17,7 @@ class TaskController(val taskService: TaskService) {
         return taskService.getTasks(userLogin)
     }
 
-    @PatchMapping()
+    @PatchMapping
     fun markDone(@RequestParam userLogin: String, @RequestParam taskId: Long, @RequestParam done: Boolean) {
         taskService.markDone(userLogin, taskId, done)
     }

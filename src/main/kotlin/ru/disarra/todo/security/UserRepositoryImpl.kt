@@ -1,7 +1,8 @@
 package ru.disarra.todo.security
 
 import org.jooq.DSLContext
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.arrayAgg
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
@@ -9,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import ru.disarra.todo.jooq.Tables
+import java.util.*
 
 
 @Service
@@ -27,7 +29,7 @@ class UserRepositoryImpl(
 
     override fun loadUserByUsername(username: String?): UserDetails {
         val groupTableForMember = Tables.GROUP.`as`(GROUP_MEMBER_ALIAS)
-        val groupTableForAdmin= Tables.GROUP.`as`(GROUP_ADMIN_ALIAS)
+        val groupTableForAdmin = Tables.GROUP.`as`(GROUP_ADMIN_ALIAS)
 
         return dslContext.select(
             *Tables.USER.fields(),
@@ -36,12 +38,25 @@ class UserRepositoryImpl(
         )
             .from(
                 Tables.USER
-                .join(Tables.USER_GROUP).on(Tables.USER_GROUP.USER_ID.eq(Tables.USER.ID))
-                .join(groupTableForMember).on(Tables.USER_GROUP.GROUP_ID.eq(groupTableForMember.ID))
-                .join(groupTableForAdmin).on(Tables.USER.ID.eq(groupTableForAdmin.ADMIN_ID)))
+                    .leftJoin(Tables.USER_GROUP).on(Tables.USER_GROUP.USER_ID.eq(Tables.USER.ID))
+                    .leftJoin(groupTableForMember).on(Tables.USER_GROUP.GROUP_ID.eq(groupTableForMember.ID))
+                    .leftJoin(groupTableForAdmin).on(Tables.USER.ID.eq(groupTableForAdmin.ADMIN_ID))
+            )
             .where(Tables.USER.LOGIN.eq(username))
-            .groupBy(*Tables.USER.fields())
+            .groupBy(Arrays.stream(Tables.USER.fields()).toList())
             .fetchOne { userRecord ->
+                val userGroupAuthorities: Array<GrantedAuthority> =
+                    (userRecord.getValue(USER_GROUPS_ALIAS) as Array<Long?>)
+                        .filterNotNull()
+                        .map { groupId -> SimpleGrantedAuthority(GROUP_ROLE_PREFIX + groupId.toString()) }
+                        .toTypedArray()
+                val userAdminAuthorities: Array<GrantedAuthority> =
+                    (userRecord.getValue(USER_ADMIN_ALIAS) as Array<Long?>)
+                        .filterNotNull()
+                        .map { groupId ->SimpleGrantedAuthority(GROUP_ADMIN_PREFIX + groupId.toString()) }
+                        .toTypedArray()
+                val userAuthorities: Array<GrantedAuthority> = (userGroupAuthorities + userAdminAuthorities)
+
                 User(
                     userRecord.getValue(Tables.USER.LOGIN),
                     userRecord.getValue(Tables.USER.PASSWORDHASH),
@@ -49,13 +64,7 @@ class UserRepositoryImpl(
                     userRecord.getValue(Tables.USER.ACTIVE),
                     userRecord.getValue(Tables.USER.ACTIVE),
                     userRecord.getValue(Tables.USER.ACTIVE),
-                    (userRecord.getValue(USER_GROUPS_ALIAS) as Array<Long>)
-                        .map { groupId -> SimpleGrantedAuthority(GROUP_ROLE_PREFIX + groupId.toString()) }
-                        .toList() +
-                    (userRecord.getValue(USER_ADMIN_ALIAS) as Array<Long>)
-                        .map { groupId -> SimpleGrantedAuthority(GROUP_ADMIN_PREFIX + groupId.toString()) }
-                        .toList() +
-                    SimpleGrantedAuthority(USER_LOGIN_PREFIX + userRecord.getValue(Tables.USER.LOGIN))
+                    userAuthorities.toSet()
                 )
             } ?: throw UsernameNotFoundException(username)
     }
@@ -69,15 +78,11 @@ class UserRepositoryImpl(
             }!!
     }
 
-
     companion object {
         const val USER_GROUPS_ALIAS = "groups"
         const val USER_ADMIN_ALIAS = "admins"
-        const val GROUP_ROLE_PREFIX = "GROUP_"
-        const val GROUP_ADMIN_PREFIX = "ADMIN_"
         const val GROUP_MEMBER_ALIAS = "group_memebers"
         const val GROUP_ADMIN_ALIAS = "group_admin"
-        const val USER_LOGIN_PREFIX = "LOGIN_"
     }
 
 }
