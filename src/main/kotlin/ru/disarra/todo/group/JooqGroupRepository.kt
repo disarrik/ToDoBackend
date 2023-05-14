@@ -8,13 +8,14 @@ import ru.disarra.todo.jooq.Tables
 @Repository
 class JooqGroupRepository(val dslContext: DSLContext): GroupRepository {
 
-    override fun createGroup(group: Group) {
-        dslContext.insertInto(Tables.GROUP, Tables.GROUP.NAME, Tables.GROUP.ADMIN_ID)
+    override fun createGroup(group: Group): Long {
+        return dslContext.insertInto(Tables.GROUP, Tables.GROUP.NAME, Tables.GROUP.ADMIN_ID)
             .select(
                 dslContext.select(value(group.name), Tables.USER.ID).from(Tables.USER)
                     .where(Tables.USER.LOGIN.eq(group.adminLogin))
             )
-            .execute()
+            .returning()
+            .fetchOne(Tables.GROUP.ID)!!
     }
 
     override fun addToGroup(groupId: Long, userId: Long) {
@@ -25,7 +26,7 @@ class JooqGroupRepository(val dslContext: DSLContext): GroupRepository {
     }
 
     override fun getGroups(userId: Long): List<Group> {
-        return dslContext.select(*Tables.GROUP.fields(), Tables.USER.ID)
+        return dslContext.select(*Tables.GROUP.fields(), Tables.USER.LOGIN)
             .from(Tables.GROUP
                 .join(Tables.USER_GROUP).on(Tables.USER_GROUP.GROUP_ID.eq(Tables.GROUP.ID))
                 .join(Tables.USER).on(Tables.USER_GROUP.USER_ID.eq(Tables.USER.ID)))

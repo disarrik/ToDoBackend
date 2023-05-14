@@ -27,7 +27,8 @@ class JooqTaskRepository(
                     groupId = r.get(Tables.TASK.GROUP_ID),
                     name = r.get(Tables.TASK.NAME),
                     description = r.get(Tables.TASK.DESCRIPTION),
-                    done = r.get(Tables.TASK_STATUS.DONE)
+                    done = r.get(Tables.TASK_STATUS.DONE),
+                    deadline = r.get(Tables.TASK.DEADLINE)
                 )
             }
     }

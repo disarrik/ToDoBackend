@@ -13,7 +13,12 @@ class GroupServiceImpl(
     val userRepository: UserRepository): GroupService {
 
     override fun createGroup(group: Group) {
-        groupRepository.createGroup(group)
+        transactionTemplate.execute { tx ->
+            val groupId = groupRepository.createGroup(group)
+            val userId = userRepository.getUserId(group.adminLogin!!)
+            groupRepository.addToGroup(groupId, userId)
+            taskRepository.addTaskStatusForNewUser(userId, groupId)
+        }
     }
 
     override fun getGroups(userLogin: String): List<Group> {

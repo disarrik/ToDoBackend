@@ -2,13 +2,14 @@ package ru.disarra.todo.group
 
 import org.springframework.web.bind.annotation.*
 
-@RestController("/group")
+@RestController
+@RequestMapping("/group")
 @CrossOrigin
 class GroupController(val groupService: GroupService) {
 
     @GetMapping
-    fun getGroups(@RequestParam userLogin: String) {
-        groupService.getGroups(userLogin)
+    fun getGroups(@RequestParam userLogin: String): List<Group> {
+        return groupService.getGroups(userLogin)
     }
 
     @PostMapping
