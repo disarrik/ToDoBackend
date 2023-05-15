@@ -55,7 +55,8 @@ class UserRepositoryImpl(
                         .filterNotNull()
                         .map { groupId ->SimpleGrantedAuthority(GROUP_ADMIN_PREFIX + groupId.toString()) }
                         .toTypedArray()
-                val userAuthorities: Array<GrantedAuthority> = (userGroupAuthorities + userAdminAuthorities)
+                val userAuthorities: Array<GrantedAuthority> = (userGroupAuthorities + userAdminAuthorities +
+                        SimpleGrantedAuthority(USER_LOGIN_PREFIX + userRecord.getValue(Tables.USER.LOGIN)))
 
                 User(
                     userRecord.getValue(Tables.USER.LOGIN),

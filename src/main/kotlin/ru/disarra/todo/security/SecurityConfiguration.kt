@@ -23,8 +23,12 @@ class SecurityConfiguration {
             .cors().configurationSource(corsConfigurationSource())
             .and()
             .authorizeHttpRequests()
-            .anyRequest()
-            .anonymous()
+            .requestMatchers("/task")
+            .authenticated()
+            .requestMatchers("/group")
+            .authenticated()
+            .requestMatchers("/register")
+            .permitAll()
             .and()
             .formLogin()
             .loginProcessingUrl("/login")
@@ -42,9 +46,10 @@ class SecurityConfiguration {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource? {
         val configuration = CorsConfiguration()
-        configuration.addAllowedOrigin("*")
+        configuration.addAllowedOrigin("http://localhost:3000")
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
+        configuration.allowCredentials = true
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)
         return source
