@@ -25,6 +25,7 @@ dependencies {
     implementation("org.liquibase:liquibase-core:4.21.1")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
     jooqGenerator("org.postgresql:postgresql:42.6.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

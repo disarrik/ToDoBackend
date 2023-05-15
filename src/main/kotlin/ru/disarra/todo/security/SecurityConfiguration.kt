@@ -9,7 +9,6 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import java.util.*
 
 
 @Configuration
@@ -23,11 +22,7 @@ class SecurityConfiguration {
             .cors().configurationSource(corsConfigurationSource())
             .and()
             .authorizeHttpRequests()
-            .requestMatchers("/task")
-            .authenticated()
-            .requestMatchers("/group")
-            .authenticated()
-            .requestMatchers("/register")
+            .anyRequest()
             .permitAll()
             .and()
             .formLogin()
