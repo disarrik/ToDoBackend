@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.*
 class TaskController(val taskService: TaskService) {
 
     @PostMapping
-    //@PreAuthorize("hasAuthority('ADMIN_'.concat(#newTask.groupId))")
+    @PreAuthorize("hasAuthority('ADMIN_'.concat(#newTask.groupId))")
     fun addTask(@RequestBody newTask: Task) {
         taskService.addTask(newTask)
     }
 
     @GetMapping
-    //@PreAuthorize("hasAuthority('LOGIN_'.concat(#userLogin))")
+    @PreAuthorize("hasAuthority('LOGIN_'.concat(#userLogin))")
     fun getTasks(@RequestParam userLogin: String): List<Task> {
         return taskService.getTasks(userLogin)
     }
 
     @PatchMapping
-    //@PreAuthorize("hasAuthority('LOGIN_'.concat(#userLogin))")
+    @PreAuthorize("hasAuthority('LOGIN_'.concat(#userLogin))")
     fun markDone(@RequestParam userLogin: String, @RequestParam taskId: Long, @RequestParam done: Boolean) {
         taskService.markDone(userLogin, taskId, done)
     }
