@@ -1,7 +1,11 @@
 package ru.disarra.todo.group
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import ru.disarra.todo.security.GROUP_ADMIN_PREFIX
 import ru.disarra.todo.security.UserRepository
 import ru.disarra.todo.task.TaskRepository
 
@@ -18,6 +22,15 @@ class GroupServiceImpl(
             val userId = userRepository.getUserId(group.adminLogin!!)
             groupRepository.addToGroup(groupId, userId)
             taskRepository.addTaskStatusForNewUser(userId, groupId)
+            val newAuthorities = SecurityContextHolder.getContext().authentication.authorities +
+                    SimpleGrantedAuthority(GROUP_ADMIN_PREFIX + groupId.toString())
+            val oldAuth = SecurityContextHolder.getContext().authentication
+            val newAuth = UsernamePasswordAuthenticationToken(
+                oldAuth.principal,
+                oldAuth.credentials,
+                newAuthorities
+            )
+            SecurityContextHolder.getContext().authentication = newAuth
         }
     }
 
